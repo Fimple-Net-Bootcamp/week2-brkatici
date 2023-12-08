@@ -10,6 +10,7 @@
         public int HighestTemperature { get; set; }
         public int LowestPressure { get; set; }
         public int HighestPressure { get; set; }
+        public bool Status { get; set; }    
     }
 
 }

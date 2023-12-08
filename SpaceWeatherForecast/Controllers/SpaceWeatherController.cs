@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 
 namespace SpaceWeatherForecast.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/v1/[controller]")]
     [ApiController]
     public class SpaceWeatherController : ControllerBase
     {
@@ -107,6 +108,61 @@ namespace SpaceWeatherForecast.Controllers
             _weatherDataList.Remove(existingData);
 
             return Ok("Veri başarıyla silindi.");
-        }      
+        }
+
+
+        [HttpGet("mars/weather/GetWeatherDataFiltered")]
+        public IActionResult GetWeatherData(int page = 1, int size = 10, bool status = true, string sort = "")
+        {
+            var queryableData = _weatherDataList.AsQueryable();
+
+            // Filtreleme
+            if (status==true)
+            {
+                queryableData = queryableData.Where(data => data.Status == status);
+            }
+
+            // Sıralama
+            if (!string.IsNullOrEmpty(sort))
+            {
+                var sortParams = sort.Split(',');
+                var propertyName = sortParams[0];
+                var sortOrder = sortParams.Length > 1 && sortParams[1].ToLower() == "desc" ? "descending" : "ascending";
+
+                //queryableData = sortOrder == "Ascending"
+                //    ? queryableData.OrderBy(data => EF.Property<object>(data, propertyName))
+                //    : queryableData.OrderByDescending(data => EF.Property<object>(data, propertyName));
+                if (sortOrder == "Ascending")
+                {
+                    if (propertyName == "Pressure")
+                    {
+                        queryableData = queryableData.OrderBy(data => data.Pressure);
+                    }
+                    else if (propertyName == "SolDay")
+                    {
+                        queryableData = queryableData.OrderBy(data => data.SolDay);
+                    }
+                   
+                }
+                else // Descending
+                {
+                    if (propertyName == "Pressure")
+                    {
+                        queryableData = queryableData.OrderByDescending(data => data.Pressure);
+                    }
+                    else if (propertyName == "SolDay")
+                    {
+                        queryableData = queryableData.OrderByDescending(data => data.SolDay);
+                    }
+                }
+
+            }
+
+            // Sayfalama
+            var paginatedData = queryableData.Skip((page - 1) * size).Take(size).ToList();
+
+            return Ok(paginatedData);
+        }
+
     }
 }

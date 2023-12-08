@@ -20,6 +20,7 @@
                     HighestTemperature = random.Next(20, 50),
                     LowestPressure = random.Next(600, 700),
                     HighestPressure = random.Next(1200, 1400),
+                    Status = true
                     // Diğer özellikler burada eklenebilir
                 };
 
